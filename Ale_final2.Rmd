@@ -1,0 +1,63 @@
+---
+title: "Interactive Shiny"
+author: "Alejandro Alfaro"
+date: "12/1/2016"
+output: html_document
+runtime: shiny
+---
+```{r, echo=F}
+library( dplyr )
+library( tidyr )
+#load data file
+setwd("/Users/AlejandroA/Documents/Maxwell/Fall-2016/Data-Driven Managemant/FINAL PROJECT")
+dat <- read.csv("DC Bike Share.csv")
+#separate date-times into dates and times
+dat <- dat %>% separate( starttime, c("start.date", "start.time"), sep = " " )
+dat <- dat %>% separate( stoptime, c("stop.date", "stop.time"), sep = " " )
+
+#convert date to date format
+dat$start.date <- as.Date(dat$start.date, format = "%m/%d/%Y")
+
+#get day of week from date
+dat$weekday <- weekdays(dat$start.date)
+```
+
+```{r, echo=F}
+checkboxGroupInput("checkGender", label =h3("Gender"), 
+    choices = list("Male" = 1, "Female" = 2),
+    selected = NULL)
+checkboxGroupInput("checkAge", label =h3("Age Group"), 
+    choices = list("Children (0-2)" =1, "Youth (3-18)" = 2, "Adult (19-61)" = 3, "Seniors (62+)" = 4),
+    selected = NULL)
+renderPlot({
+targetg <- input$checkGender
+targeta <- input$checkAge
+dat$age <- 2016-dat$birth.year
+dat <- mutate(dat,agegroup=NULL)
+dat$agegroup[dat$age < 3] <- 1
+dat$agegroup[dat$age > 2 & dat$age < 19] <- 2
+dat$agegroup[dat$age > 18 & dat$age < 62] <- 3
+dat$agegroup[dat$age > 61] <- 4
+if(is.null(targetg)) {targetg=c(0,1,2)}
+if(is.null(targeta)) {targeta=c(1,2,3,4)}
+trips <- dat %>%
+  filter(gender %in% targetg) %>%
+  filter(agegroup %in% targeta) %>%
+  group_by( weekday ) %>%
+  summarize(ntrip = n())
+#order days of week
+trips <- trips[c(2,6,7,5,1,3,4),]
+#plot barplot (ridership by day of week)
+barplot <- barplot(height = trips$ntrip, 
+                   xlab = "", ylim=c(0,60000), col = "dodgerblue3")
+text(x = barplot, 
+     y = 0, 
+     labels = trips$weekday, 
+     pos = 3, 
+     cex = 0.7, 
+     font = 2, 
+     col = "white")
+})
+```
+
+
