@@ -27,19 +27,20 @@ checkboxGroupInput("checkGender", label =h3("Gender"),
     choices = list("Male" = 1, "Female" = 2),
     selected = NULL)
 checkboxGroupInput("checkAge", label =h3("Age Group"), 
-    choices = list("Children (0-2)" =1, "Youth (3-18)" = 2, "Adult (19-61)" = 3, "Seniors (62+)" = 4),
+    choices = list("Post-Millennials (0-18)" =1, "Millenials (19-35)" = 2, "Gen X (36-51)" = 3, "Boomer (52-70)" = 4, "Silent (71+)" = 5), 
     selected = NULL)
 renderPlot({
 targetg <- input$checkGender
 targeta <- input$checkAge
 dat$age <- 2016-dat$birth.year
 dat <- mutate(dat,agegroup=NULL)
-dat$agegroup[dat$age < 3] <- 1
-dat$agegroup[dat$age > 2 & dat$age < 19] <- 2
-dat$agegroup[dat$age > 18 & dat$age < 62] <- 3
-dat$agegroup[dat$age > 61] <- 4
+dat$agegroup[dat$age < 19] <- 1
+dat$agegroup[dat$age > 18 & dat$age < 36] <- 2
+dat$agegroup[dat$age > 35 & dat$age < 52] <- 3
+dat$agegroup[dat$age > 51 & dat$age < 71] <- 4
+dat$agegroup[dat$age > 70] <- 5
 if(is.null(targetg)) {targetg=c(0,1,2)}
-if(is.null(targeta)) {targeta=c(1,2,3,4)}
+if(is.null(targeta)) {targeta=c(1,2,3,4,5)}
 trips <- dat %>%
   filter(gender %in% targetg) %>%
   filter(agegroup %in% targeta) %>%
@@ -49,14 +50,21 @@ trips <- dat %>%
 trips <- trips[c(2,6,7,5,1,3,4),]
 #plot barplot (ridership by day of week)
 barplot <- barplot(height = trips$ntrip, 
-                   xlab = "", ylim=c(0,60000), col = "dodgerblue3")
+                   xlab = "", ylim=c(0, 65000), col = "dodgerblue3")
 text(x = barplot, 
      y = 0, 
      labels = trips$weekday, 
      pos = 3, 
      cex = 0.7, 
-     font = 2, 
+     font = 2,
      col = "white")
+text(x = barplot, 
+     y = trips$ntrip, 
+     labels = trips$ntrip, 
+     pos = 3, 
+     cex = 0.7, 
+     font = 2, 
+     col = "gray0")
 })
 ```
 
